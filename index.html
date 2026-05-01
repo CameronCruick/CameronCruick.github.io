@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>for you 💜</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --purple:       #8b5cf6;
+      --purple-light: #c4b5fd;
+      --purple-dark:  #5b21b6;
+      --orange:       #fb923c;
+      --bg:           #fdfbff;
+      --text:         #2e1065;
+      --muted:        #a78bfa;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%; width: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── sparkle bg ── */
+    .bg-layer { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .sparkle {
+      position: absolute; border-radius: 50%;
+      background: var(--purple-light); opacity: 0;
+      animation: twinkle ease-in-out infinite;
+    }
+    @keyframes twinkle {
+      0%,100% { opacity: 0; transform: scale(0.5); }
+      50%      { opacity: 0.4; transform: scale(1.2); }
+    }
+
+    /* ── progress dots ── */
+    .dots {
+      position: fixed; top: 26px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 10px; z-index: 10;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--purple-light);
+      transition: background .4s, transform .4s;
+    }
+    .dot.active { background: var(--purple); transform: scale(1.4); }
+    .dot.done   { background: var(--purple-dark); }
+
+    /* ── screens ── */
+    .screen {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 2rem 1.6rem;
+      z-index: 1; opacity: 0; pointer-events: none;
+      transition: opacity .45s ease, transform .45s ease;
+      transform: translateX(60px);
+    }
+    .screen.active  { opacity: 1; pointer-events: all; transform: translateX(0); }
+    .screen.exit    { opacity: 0; transform: translateX(-60px); }
+
+    .q-label {
+      font-weight: 300; font-size: .7rem;
+      letter-spacing: .22em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 1rem;
+    }
+    .q-emoji {
+      font-size: 3rem; margin-bottom: 1rem;
+      animation: bounce 2.2s ease-in-out infinite;
+      line-height: 1;
+    }
+    @keyframes bounce {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+    .q-text {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(2rem, 8.5vw, 2.8rem);
+      font-weight: 700; color: var(--text);
+      text-align: center; line-height: 1.25;
+      margin-bottom: 2.8rem; max-width: 300px;
+    }
+
+    /* ── yes button ── */
+    .btn-yes {
+      font-family: 'Caveat', cursive;
+      font-size: 1.65rem; font-weight: 700;
+      padding: .8rem 3.2rem; border-radius: 50px;
+      border: none; background: var(--purple); color: #fff;
+      cursor: pointer; min-height: 58px;
+      box-shadow: 0 6px 28px rgba(139,92,246,.4);
+      transition: transform .12s, box-shadow .12s;
+    }
+    .btn-yes:active { transform: scale(.94); box-shadow: 0 2px 10px rgba(139,92,246,.2); }
+
+    /* ── no button ── */
+    #noBtn {
+      position: fixed;
+      font-family: 'Caveat', cursive;
+      font-size: 1.35rem; font-weight: 600;
+      padding: .65rem 2rem; border-radius: 50px;
+      border: 2.5px solid #ddd6fe;
+      background: transparent; color: var(--purple-light);
+      cursor: pointer; z-index: 999; min-height: 48px;
+      transition: left .15s cubic-bezier(.34,1.56,.64,1),
+                  top  .15s cubic-bezier(.34,1.56,.64,1),
+                  font-size .2s ease, padding .2s ease;
+    }
+
+
+
+    /* ── floating emojis (float upward) ── */
+    .floater {
+      position: fixed; z-index: 90; pointer-events: none;
+      font-size: 2rem;
+      animation: floatUp ease-out forwards;
+    }
+    @keyframes floatUp {
+      0%   { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-60vh) scale(1.4); }
+    }
+
+    /* ── burst emojis (radiate outward) ── */
+    .burster {
+      position: fixed; z-index: 90; pointer-events: none;
+      font-size: 1.8rem;
+      animation: burstOut ease-out forwards;
+    }
+    @keyframes burstOut {
+      0%   { opacity: 1; transform: translate(0,0) scale(0.5); }
+      100% { opacity: 0; transform: translate(var(--bx), var(--by)) scale(1.3); }
+    }
+
+    /* ── falling emojis ── */
+    .faller {
+      position: fixed; z-index: 90; pointer-events: none;
+      animation: fallDown linear forwards;
+    }
+    @keyframes fallDown {
+      0%   { opacity: 1; transform: translateY(-80px) rotate(-10deg); }
+      85%  { opacity: 1; }
+      100% { opacity: 0; transform: translateY(110vh) rotate(25deg); }
+    }
+
+    /* ── wiggle for shrink ── */
+    @keyframes wiggle {
+      0%,100% { transform: rotate(0deg); }
+      25%      { transform: rotate(-10deg); }
+      75%      { transform: rotate(10deg); }
+    }
+    .wiggling { animation: wiggle .3s ease; }
+
+    /* ── final screen ── */
+    .final-emoji {
+      font-size: 5rem; margin-bottom: .8rem;
+      animation: spinBounce .7s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes spinBounce {
+      from { transform: scale(0) rotate(-25deg); opacity: 0; }
+      to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+    }
+    .final-text {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(2.8rem, 12vw, 3.8rem);
+      font-weight: 700; color: var(--purple-dark);
+      text-align: center; margin-bottom: .5rem;
+    }
+    .final-sub {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300; font-size: .88rem;
+      color: var(--muted); letter-spacing: .1em;
+    }
+
+    #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
+
+    /* ── angry toast ── */
+    #angryToast {
+      position: fixed;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #2e1065;
+      color: #fff;
+      font-family: 'Caveat', cursive;
+      font-size: 1.35rem;
+      font-weight: 700;
+      padding: .65rem 1.6rem;
+      border-radius: 50px;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    #angryToast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-layer" id="bgLayer"></div>
+<canvas id="confetti"></canvas>
+<div class="dots" id="dots"></div>
+<!-- Q1 -->
+<div class="screen active" id="q0">
+  <div class="q-emoji">💜</div>
+  <p class="q-label">question 1 of 4</p>
+  <p class="q-text">do you love me?</p>
+  <button class="btn-yes" onclick="celebrate(0)">yes 💜</button>
+</div>
+
+<!-- Q2 -->
+<div class="screen" id="q1">
+  <div class="q-emoji">🌸</div>
+  <p class="q-label">question 2 of 4</p>
+  <p class="q-text">are you the most beautiful girl in the world?</p>
+  <button class="btn-yes" onclick="celebrate(1)">obviously 🌸</button>
+</div>
+
+<!-- Q3 -->
+<div class="screen" id="q2">
+  <div class="q-emoji">🎲</div>
+  <p class="q-label">question 3 of 4</p>
+  <p class="q-text">saga date when i'm back?</p>
+  <button class="btn-yes" onclick="celebrate(2)">obviously 🎲</button>
+</div>
+
+<!-- Q4 -->
+<div class="screen" id="q3">
+  <div class="q-emoji">💕</div>
+  <p class="q-label">question 4 of 4</p>
+  <p class="q-text">will you be mine forever?</p>
+  <button class="btn-yes" onclick="celebrate(3)">always 💜</button>
+</div>
+
+<!-- Final -->
+<div class="screen" id="qFinal">
+  <div class="final-emoji">🥰</div>
+  <p class="final-text">damn right. ♡</p>
+</div>
+
+<button id="noBtn">no</button>
+<div id="angryToast">don't piss me off rn</div>
+
+<script>
+  // ── sparkle bg ──
+  const bgLayer = document.getElementById('bgLayer');
+  for (let i = 0; i < 28; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.top  = Math.random() * 100 + 'vh';
+    const size = 4 + Math.random() * 7;
+    s.style.width = s.style.height = size + 'px';
+    const dur = 2 + Math.random() * 3;
+    s.style.animationDuration = dur + 's';
+    s.style.animationDelay   = -(Math.random() * dur) + 's';
+    bgLayer.appendChild(s);
+  }
+
+  // ── dots ──
+  const totalQ = 4;
+  const dotsEl = document.getElementById('dots');
+  for (let i = 0; i < totalQ; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    dotsEl.appendChild(d);
+  }
+
+  let currentQ = 0;
+  let noScale  = 1;
+  const screens = document.querySelectorAll('.screen');
+
+  // ── no button ──
+  const noBtn = document.getElementById('noBtn');
+
+  function placeNoBtn() {
+    const yesBtn = document.querySelector('.screen.active .btn-yes');
+    if (!yesBtn) return;
+    const r  = yesBtn.getBoundingClientRect();
+    const nw = noBtn.offsetWidth  || 80;
+    const nh = noBtn.offsetHeight || 48;
+    let nx = r.left + r.width / 2 - nw / 2;
+    let ny = r.bottom + 22;
+    nx = Math.max(12, Math.min(window.innerWidth  - nw - 12, nx));
+    ny = Math.max(70, Math.min(window.innerHeight - nh - 20, ny));
+    noBtn.style.transition = 'none';
+    noBtn.style.left = nx + 'px';
+    noBtn.style.top  = ny + 'px';
+    noScale = 1;
+    noBtn.style.fontSize = '1.35rem';
+    noBtn.style.padding  = '.65rem 2rem';
+    void noBtn.offsetWidth;
+    noBtn.style.transition = '';
+  }
+
+  window.addEventListener('load',   () => setTimeout(placeNoBtn, 80));
+  window.addEventListener('resize', placeNoBtn);
+
+  function flyRandom() {
+    const nw = noBtn.offsetWidth, nh = noBtn.offsetHeight, m = 20;
+    const cx = parseFloat(noBtn.style.left) || window.innerWidth  / 2;
+    const cy = parseFloat(noBtn.style.top)  || window.innerHeight / 2;
+    let nx, ny, t = 0;
+    do {
+      nx = m + Math.random() * (window.innerWidth  - nw - m * 2);
+      ny = m + Math.random() * (window.innerHeight - nh - m * 2);
+    } while (Math.hypot(nx-cx, ny-cy) < 130 && ++t < 25);
+    noBtn.style.left = nx + 'px';
+    noBtn.style.top  = ny + 'px';
+  }
+
+  function shrinkAndFly() {
+    noScale = Math.max(0.42, noScale - 0.15);
+    noBtn.style.fontSize = (1.35 * noScale) + 'rem';
+    noBtn.style.padding  = (.65 * noScale) + 'rem ' + (2 * noScale) + 'rem';
+    noBtn.classList.remove('wiggling');
+    void noBtn.offsetWidth;
+    noBtn.classList.add('wiggling');
+    setTimeout(() => noBtn.classList.remove('wiggling'), 350);
+    flyRandom();
+  }
+
+  const noBehaviours = ['fly', 'fly', 'fly', 'fly'];
+  let toastTimer = null;
+  let noClicked = false;
+  const angryToast = document.getElementById('angryToast');
+
+  function showToast() {
+    if (noClicked) return;
+    noClicked = true;
+    angryToast.classList.add('show');
+    toastTimer = setTimeout(() => angryToast.classList.remove('show'), 2000);
+  }
+
+  noBtn.addEventListener('click', () => {
+    noBehaviours[currentQ] === 'shrink' ? shrinkAndFly() : flyRandom();
+    showToast();
+  });
+
+  // ── celebration configs per question ──
+  const celebrations = [
+    {
+      effect: 'float',
+      emojis: ['💜','💗','💕','🌸','💜','✨','💜','💗'],
+    },
+    {
+      effect: 'burst',
+      emojis: ['⭐','✨','💫','🌟','✨','💫','⭐','🌟'],
+    },
+    {
+      effect: 'rain',
+      emojis: ['🎲','♟️','🃏','🎯','🎲','🎮','🎲','♟️'],
+    },
+    {
+      effect: 'finale',
+      emojis: ['💜','🌸','✨','💕','🎲','🧡','💜','🌟'],
+    },
+  ];
+
+  function celebrate(qIdx) {
+    const cfg = celebrations[qIdx];
+
+    // disable yes button
+    const yesBtn = document.querySelector(`#q${qIdx} .btn-yes`);
+    yesBtn.style.pointerEvents = 'none';
+    noBtn.style.pointerEvents  = 'none';
+
+    // trigger effect
+    if      (cfg.effect === 'float')  floatEmojis(cfg.emojis);
+    else if (cfg.effect === 'burst')  burstEmojis(cfg.emojis);
+    else if (cfg.effect === 'rain')   rainEmojis(cfg.emojis);
+    else if (cfg.effect === 'finale') { rainEmojis(cfg.emojis); launchConfetti(); }
+
+    // advance after delay
+    const delay = cfg.effect === 'finale' ? 2200 : 1800;
+    setTimeout(() => {
+      noBtn.style.pointerEvents = '';
+      if (cfg.effect === 'finale') {
+        goToFinal();
+      } else {
+        goTo(qIdx + 1);
+      }
+    }, delay);
+  }
+
+  // float upward from random bottom positions
+  function floatEmojis(emojis) {
+    emojis.forEach((e, i) => {
+      setTimeout(() => {
+        const el = document.createElement('span');
+        el.className = 'floater';
+        el.textContent = e;
+        el.style.left = (10 + Math.random() * 78) + 'vw';
+        el.style.top  = (55 + Math.random() * 30) + 'vh';
+        el.style.fontSize = (1.5 + Math.random() * 1.5) + 'rem';
+        const dur = 1.2 + Math.random() * .8;
+        el.style.animationDuration = dur + 's';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), dur * 1000 + 100);
+      }, i * 120);
+    });
+  }
+
+  // burst outward from centre
+  function burstEmojis(emojis) {
+    const cx = window.innerWidth  / 2;
+    const cy = window.innerHeight / 2;
+    emojis.forEach((e, i) => {
+      setTimeout(() => {
+        const angle = (i / emojis.length) * Math.PI * 2;
+        const dist  = 90 + Math.random() * 100;
+        const bx = Math.cos(angle) * dist + 'px';
+        const by = Math.sin(angle) * dist + 'px';
+        const el = document.createElement('span');
+        el.className = 'burster';
+        el.textContent = e;
+        el.style.left = cx + 'px';
+        el.style.top  = cy + 'px';
+        el.style.setProperty('--bx', bx);
+        el.style.setProperty('--by', by);
+        el.style.fontSize = (1.4 + Math.random()) + 'rem';
+        const dur = .9 + Math.random() * .5;
+        el.style.animationDuration = dur + 's';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), dur * 1000 + 100);
+      }, i * 60);
+    });
+  }
+
+  // rain from top
+  function rainEmojis(emojis) {
+    const pool = [...emojis, ...emojis]; // double up
+    pool.forEach((e, i) => {
+      setTimeout(() => {
+        const el = document.createElement('span');
+        el.className = 'faller';
+        el.textContent = e;
+        el.style.left = (4 + Math.random() * 88) + 'vw';
+        el.style.top  = '-70px';
+        el.style.fontSize = (1.4 + Math.random() * 1.6) + 'rem';
+        const dur = 1.3 + Math.random() * 1;
+        el.style.animationDuration = dur + 's';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), (dur + .3) * 1000);
+      }, i * 100);
+    });
+  }
+
+  // ── screen transitions ──
+  function updateDots() {
+    dotsEl.querySelectorAll('.dot').forEach((d, i) => {
+      d.classList.remove('active','done');
+      if (i < currentQ)       d.classList.add('done');
+      else if (i === currentQ) d.classList.add('active');
+    });
+  }
+
+  function goTo(idx) {
+    screens[currentQ].classList.add('exit');
+    screens[currentQ].classList.remove('active');
+    const prev = currentQ;
+    setTimeout(() => {
+      screens[prev].classList.remove('exit');
+      currentQ = idx;
+      screens[idx].classList.add('active');
+      updateDots();
+      setTimeout(placeNoBtn, 80);
+    }, 460);
+  }
+
+  function goToFinal() {
+    noBtn.style.display  = 'none';
+    dotsEl.style.display = 'none';
+    screens[currentQ].classList.add('exit');
+    screens[currentQ].classList.remove('active');
+    const prev = currentQ;
+    setTimeout(() => {
+      screens[prev].classList.remove('exit');
+      document.getElementById('qFinal').classList.add('active');
+    }, 460);
+  }
+
+  function launchConfetti() {
+    const canvas = document.getElementById('confetti');
+    const ctx    = canvas.getContext('2d');
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const colors = ['#8b5cf6','#c4b5fd','#fb923c','#fde68a','#f9a8d4','#a78bfa','#fed7aa','#5b21b6'];
+    const pieces = Array.from({ length: 160 }, () => ({
+      x: Math.random() * canvas.width,
+      y: -20 - Math.random() * 300,
+      r: 4 + Math.random() * 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - .5) * 4,
+      vy: 2.5 + Math.random() * 3,
+      angle: Math.random() * Math.PI * 2,
+      spin:  (Math.random() - .5) * .18,
+      shape: Math.random() > .5 ? 'circle' : 'rect',
+    }));
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      pieces.forEach(p => {
+        if (p.y > canvas.height + 20) return;
+        alive = true;
+        ctx.save();
+        ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+        ctx.fillStyle = p.color;
+        if (p.shape === 'circle') { ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill(); }
+        else ctx.fillRect(-p.r, -p.r*.5, p.r*2, p.r);
+        ctx.restore();
+        p.x += p.vx; p.y += p.vy; p.vy += .05; p.angle += p.spin;
+      });
+      if (alive) requestAnimationFrame(draw);
+    }
+    draw();
+  }
+</script>
+</body>
+</html>
